@@ -1,0 +1,73 @@
+@model List<Universetechgeek.Models.Game>
+
+@{
+    ViewData["Title"] = "Games";
+}
+
+<main class="container mx-auto px-4 py-12">
+
+    <!-- Featured Article -->
+    <h2 class="text-4xl font-bold mb-8">Notícias de Jogos</h2>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+
+        <!-- Main featured game (first item from API) -->
+        @if (Model.Any())
+        {
+            var featured = Model.First();
+            <article class="lg:col-span-8 space-y-6 hover-card cursor-pointer group">
+                <a href="/Games/Details/@featured.Id" class="aspect-video rounded-2xl w-full block overflow-hidden relative">
+                    <img src="@featured.ImageUrl" alt="@featured.Title" class="w-full h-full object-cover rounded-2xl" />
+                </a>
+                <div class="space-y-4">
+                    <span class="news-badge">Em Destaque</span>
+                    <h3 class="text-3xl md:text-5xl font-bold leading-tight hover:text-blue-600 cursor-pointer">
+                        @featured.Title
+                    </h3>
+                    <p class="text-gray-600 text-xl">@featured.Description</p>
+                    <div class="flex items-center space-x-4 text-sm text-gray-500">
+                        <span class="font-bold">★ @featured.Rating</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Sidebar: remaining games -->
+            <aside class="lg:col-span-4 space-y-8">
+                <h4 class="text-xl font-bold border-l-4 border-blue-600 pl-4 uppercase tracking-widest">Mais Lidas</h4>
+                <div class="gap-4 flex flex-col">
+                    @foreach (var game in Model.Skip(1).Take(4))
+                    {
+                        <a href="/Games/Details/@game.Id" class="flex gap-4 hover-card cursor-pointer group">
+                            <div class="w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
+                                <img src="@game.ImageUrl" alt="@game.Title" class="rounded-lg w-full h-full object-cover" />
+                            </div>
+                            <div class="space-y-1">
+                                <h5 class="font-bold text-sm group-hover:text-blue-600 transition-colors">@game.Title</h5>
+                                <p class="text-xs text-gray-500">★ @game.Rating</p>
+                            </div>
+                        </a>
+                    }
+                </div>
+            </aside>
+        }
+
+    </div>
+
+    <!-- Recent Games Grid -->
+    <section class="mt-20">
+        <h4 class="text-2xl font-bold mb-8">Mais Jogos</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            @foreach (var game in Model.Skip(5))
+            {
+                <a href="/Games/Details/@game.Id" class="hover-card cursor-pointer group">
+                    <div class="aspect-video rounded-lg mb-4 overflow-hidden">
+                        <img src="@game.ImageUrl" alt="@game.Title" class="rounded-lg w-full h-full object-cover" />
+                    </div>
+                    <span class="text-blue-600 text-xs font-bold uppercase">★ @game.Rating</span>
+                    <h5 class="font-bold mt-2 group-hover:underline line-clamp-2">@game.Title</h5>
+                </a>
+            }
+        </div>
+    </section>
+
+</main>

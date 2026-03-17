@@ -1,0 +1,371 @@
+@model Universetechgeek.Models.ProfileViewModel
+
+@{
+    ViewData["Title"] = "Perfil";
+    var avgRating = Model.Reviews.Any() ? Math.Round(Model.Reviews.Average(r => r.Stars), 1) : 0;
+    var initial = Model.User.DisplayName?.Length > 0 ? Model.User.DisplayName[0].ToString().ToUpper() : "?";
+
+    // Group watchlist by media type
+    var watchlistByType = Model.Watchlist.GroupBy(w => w.MediaType).ToDictionary(g => g.Key, g => g.ToList());
+}
+
+<style>
+    .profile-hero {
+        background: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 50%, #0f0f0f 100%);
+        padding: 48px 0 64px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .profile-hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at 20% 50%, rgba(59,130,246,0.08) 0%, transparent 60%),
+                    radial-gradient(ellipse at 80% 50%, rgba(99,102,241,0.06) 0%, transparent 60%);
+    }
+
+    .avatar-circle {
+        width: 88px;
+        height: 88px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #3b82f6, #6366f1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+        font-weight: 800;
+        color: #fff;
+        flex-shrink: 0;
+        box-shadow: 0 0 0 4px rgba(59,130,246,0.2);
+    }
+
+    .stat-card {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 12px;
+        padding: 20px 24px;
+        text-align: center;
+        flex: 1;
+    }
+
+    .stat-number {
+        font-size: 36px;
+        font-weight: 800;
+        color: #3b82f6;
+        line-height: 1;
+        margin-bottom: 4px;
+    }
+
+    .stat-label {
+        font-size: 12px;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 600;
+    }
+
+    .section-title {
+        font-size: 20px;
+        font-weight: 800;
+        margin: 0 0 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section-title::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #e5e7eb;
+    }
+
+    .watchlist-cover {
+        aspect-ratio: 2/3;
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .watchlist-cover:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+
+    .watchlist-cover img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .watchlist-cover .remove-btn {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        background: rgba(0,0,0,0.7);
+        color: #fff;
+        border: none;
+        border-radius: 50%;
+        width: 26px;
+        height: 26px;
+        font-size: 14px;
+        cursor: pointer;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+    }
+
+    .watchlist-cover:hover .remove-btn {
+        display: flex;
+    }
+
+    .review-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 12px;
+        transition: box-shadow 0.2s;
+    }
+
+    .review-card:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+
+    .media-type-badge {
+        display: inline-block;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 3px 8px;
+        border-radius: 4px;
+        margin-bottom: 8px;
+    }
+
+    .badge-movie    { background: #dbeafe; color: #1d4ed8; }
+    .badge-game     { background: #dcfce7; color: #15803d; }
+    .badge-book     { background: #fef9c3; color: #854d0e; }
+    .badge-tvshow   { background: #f3e8ff; color: #7e22ce; }
+    .badge-anime    { background: #ffe4e6; color: #be123c; }
+
+    .tab-btn {
+        padding: 8px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        color: #888;
+        transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+        background: #3b82f6;
+        color: #fff;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .empty-state {
+        text-align: center;
+        padding: 48px 24px;
+        color: #aaa;
+    }
+
+    .empty-state svg {
+        margin: 0 auto 16px;
+        opacity: 0.3;
+    }
+</style>
+
+<!-- Profile Hero -->
+<div class="profile-hero">
+    <div class="container mx-auto px-4" style="position:relative; z-index:1;">
+
+        <!-- User Info -->
+        <div style="display:flex; align-items:center; gap:24px; margin-bottom:40px; flex-wrap:wrap;">
+            <div class="avatar-circle">@initial</div>
+            <div>
+                <h1 style="font-size:32px; font-weight:800; color:#fff; margin:0 0 4px;">@Model.User.DisplayName</h1>
+                <p style="color:#888; margin:0 0 4px;">@Model.User.Email</p>
+                <p style="color:#555; font-size:13px; margin:0;">
+                    Membro desde @Model.User.CreatedAt.ToString("MMMM yyyy")
+                </p>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+            <div class="stat-card">
+                <div class="stat-number">@Model.Reviews.Count</div>
+                <div class="stat-label">Reviews</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">@Model.Watchlist.Count</div>
+                <div class="stat-label">Watchlist</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">@avgRating</div>
+                <div class="stat-label">Média de Estrelas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">@Model.Reviews.Select(r => r.MediaType).Distinct().Count()</div>
+                <div class="stat-label">Categorias</div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Content -->
+<div class="container mx-auto px-4 py-12 max-w-5xl">
+
+    <!-- Tabs -->
+    <div style="display:flex; gap:8px; margin-bottom:32px; flex-wrap:wrap;">
+        <button class="tab-btn active" onclick="switchTab('watchlist', this)">
+            Watchlist (@Model.Watchlist.Count)
+        </button>
+        <button class="tab-btn" onclick="switchTab('reviews', this)">
+            Reviews (@Model.Reviews.Count)
+        </button>
+    </div>
+
+    <!-- Watchlist Tab -->
+    <div id="tab-watchlist" class="tab-content active">
+
+        @if (!Model.Watchlist.Any())
+        {
+            <div class="empty-state">
+                <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+                </svg>
+                <p style="font-size:18px; font-weight:600; margin:0 0 8px;">Watchlist vazia</p>
+                <p style="font-size:14px;">Adiciona filmes, séries e animes nas páginas de detalhes!</p>
+            </div>
+        }
+        else
+        {
+            @foreach (var type in watchlistByType)
+            {
+                var typeName = type.Key switch {
+                    "Movie" => "🎬 Filmes",
+                    "TvShow" => "📺 Séries",
+                    "Anime" => "⛩️ Animes",
+                    "Game" => "🎮 Jogos",
+                    "Book" => "📚 Livros",
+                    _ => type.Key
+                };
+
+                <div style="margin-bottom:40px;">
+                    <h3 class="section-title">@typeName</h3>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); gap:16px;">
+                        @foreach (var item in type.Value)
+                        {
+                            <div>
+                                <a href="/@(item.MediaType)s/Details/@item.MediaId" class="watchlist-cover" style="display:block;">
+                                    <img src="@item.ImageUrl" alt="@item.Title" onerror="this.src='/img/no-cover.jpg'" />
+                                    <form asp-controller="Review" asp-action="RemoveFromWatchlist" method="post">
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <button type="submit" class="remove-btn" title="Remover">✕</button>
+                                    </form>
+                                </a>
+                                <p style="font-size:11px; font-weight:600; margin:6px 0 0; line-height:1.3; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">@item.Title</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <!-- Reviews Tab -->
+    <div id="tab-reviews" class="tab-content">
+
+        @if (!Model.Reviews.Any())
+        {
+            <div class="empty-state">
+                <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                </svg>
+                <p style="font-size:18px; font-weight:600; margin:0 0 8px;">Ainda sem reviews</p>
+                <p style="font-size:14px;">Avalia filmes, jogos, livros e muito mais!</p>
+            </div>
+        }
+        else
+        {
+            @foreach (var review in Model.Reviews)
+            {
+                var badgeClass = review.MediaType switch {
+                    "Movie" => "badge-movie",
+                    "Game" => "badge-game",
+                    "Book" => "badge-book",
+                    "TvShow" => "badge-tvshow",
+                    "Anime" => "badge-anime",
+                    _ => "badge-movie"
+                };
+
+                var mediaLabel = review.MediaType switch {
+                    "Movie" => "Filme",
+                    "Game" => "Jogo",
+                    "Book" => "Livro",
+                    "TvShow" => "Série",
+                    "Anime" => "Anime",
+                    _ => review.MediaType
+                };
+
+                var detailsUrl = $"/{review.MediaType}s/Details/{review.MediaId}";
+
+                <div class="review-card">
+                    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+                        <div style="flex:1;">
+                            <span class="media-type-badge @badgeClass">@mediaLabel</span>
+                            <div style="display:flex; gap:2px; margin-bottom:8px;">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    if (i <= review.Stars)
+                                    {
+                                        <span style="color:#facc15; font-size:18px;">★</span>
+                                    }
+                                    else
+                                    {
+                                        <span style="color:#d1d5db; font-size:18px;">★</span>
+                                    }
+                                }
+                            </div>
+                            @if (!string.IsNullOrWhiteSpace(review.Content))
+                            {
+                                <p style="color:#444; margin:0; font-size:14px; line-height:1.6;">@review.Content</p>
+                            }
+                            else
+                            {
+                                <p style="color:#aaa; margin:0; font-size:13px; font-style:italic;">Sem comentário</p>
+                            }
+                        </div>
+                        <div style="text-align:right; flex-shrink:0;">
+                            <p style="font-size:12px; color:#aaa; margin:0 0 8px;">@review.CreatedAt.ToString("dd MMM yyyy")</p>
+                            <a href="@detailsUrl" style="font-size:12px; color:#3b82f6; text-decoration:none; font-weight:600;">
+                                Ver página →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+</div>
+
+<script>
+    function switchTab(name, btn) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + name).classList.add('active');
+        btn.classList.add('active');
+    }
+</script>

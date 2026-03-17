@@ -1,0 +1,39 @@
+@model Universetechgeek.Models.MediaDetailsViewModel<Universetechgeek.Models.Game>
+
+@{
+    ViewData["MediaTitle"] = Model.Media?.Title ?? "Game Details";
+}
+
+<main class="container mx-auto py-12 px-4">
+
+    @if (Model.Media == null)
+    {
+        <p class="text-gray-500">Jogo não encontrado.</p>
+    }
+    else
+    {
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div class="lg:col-span-8">
+                <div class="w-full h-[500px] overflow-hidden rounded-xl bg-black">
+                    <img src="@Model.Media.ImageUrl" alt="@Model.Media.Title" class="w-full h-full object-cover" />
+                </div>
+            </div>
+            <div class="lg:col-span-4 space-y-6">
+                <div class="flex items-center justify-between">
+                    <h1 class="text-4xl font-extrabold tracking-tighter">@Model.Media.Title</h1>
+                    <div class="rating-badge text-white">@Model.Media.Rating</div>
+                </div>
+                <p class="text-gray-600 leading-relaxed">@Model.Media.Description</p>
+            </div>
+        </div>
+
+        @await Html.PartialAsync("_ReviewSection", Model as dynamic, new ViewDataDictionary(ViewData)
+        {
+            { "MediaType", "Game" },
+        { "MediaId", Model.Media.Id.ToString() },
+        { "Title", Model.Media.Title },
+        { "ImageUrl", Model.Media.ImageUrl }
+        })
+        }
+
+</main>

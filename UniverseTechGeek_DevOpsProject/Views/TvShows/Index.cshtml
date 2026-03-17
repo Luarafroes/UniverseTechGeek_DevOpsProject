@@ -1,0 +1,27 @@
+@model List<Universetechgeek.Models.TvShow>
+
+@{
+    ViewData["Title"] = "TV Shows";
+}
+
+<main class="container mx-auto px-4 py-12">
+
+    <div class="mb-8 border-l-4 border-green-500 pl-4">
+        <h2 class="text-3xl font-bold">TV Shows</h2>
+        <p class="text-gray-500">Séries e Programas</p>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+        @foreach (var show in Model)
+        {
+            <a href="/TvShows/Details/@show.Id" class="space-y-3 hover-card cursor-pointer group">
+                <div class="aspect-[2/3] rounded-md overflow-hidden shadow-sm">
+                    <img src="@show.ImageUrl" alt="@show.Title" class="w-full h-full object-cover rounded" />
+                </div>
+                <h3 class="text-sm font-semibold leading-tight">@show.Title</h3>
+                <span class="text-xs">★ @show.Rating</span>
+            </a>
+        }
+    </div>
+
+</main>

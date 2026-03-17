@@ -1,0 +1,78 @@
+@model Universetechgeek.Models.MediaDetailsViewModel<Universetechgeek.Models.Game>
+
+@{
+    ViewData["Title"] = "Game Details";
+}
+
+<main class="container mx-auto py-12 px-4">
+
+    @if (Model.Media == null)
+    {
+        <p class="text-gray-500">Jogo não encontrado.</p>
+    }
+    else
+    {
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div class="lg:col-span-8">
+                <div class="w-full h-[500px] overflow-hidden rounded-xl bg-black">
+                    <img src="@Model.Media.ImageUrl" alt="@Model.Media.Title" class="w-full h-full object-cover" />
+                </div>
+            </div>
+            <div class="lg:col-span-4 space-y-6">
+                <div class="flex items-center justify-between">
+                    <h1 class="text-4xl font-extrabold tracking-tighter">@Model.Media.Title</h1>
+                    <div class="rating-badge text-white">@Model.Media.Rating</div>
+                </div>
+                <p class="text-gray-600 leading-relaxed">@Model.Media.Description</p>
+                <div class="space-y-1">
+                    <div class="info-grid-item">
+                        <span class="text-gray-500">Avaliação</span>
+                        <span class="font-bold">★ @Model.Media.Rating</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="mt-20">
+            <h2 class="text-3xl font-bold mb-4 border-l-4 border-blue-600 pl-4">System Requirements</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="requirement-card">
+                    <h3 class="text-blue-600 font-bold mb-4 uppercase">Minimum</h3>
+                    <ul class="space-y-3 text-sm">
+                        <li><strong>OS:</strong> Windows 10 64-bit</li>
+                        <li><strong>CPU:</strong> Intel Core i5 / AMD Ryzen 5</li>
+                        <li><strong>RAM:</strong> 8 GB</li>
+                        <li><strong>GPU:</strong> GTX 970 / RX 470</li>
+                        <li><strong>Storage:</strong> 50 GB SSD</li>
+                    </ul>
+                </div>
+                <div class="requirement-card border-blue-600">
+                    <h3 class="text-blue-600 font-bold mb-4 uppercase">Recommended</h3>
+                    <ul class="space-y-3 text-sm">
+                        <li><strong>OS:</strong> Windows 11 64-bit</li>
+                        <li><strong>CPU:</strong> Intel Core i7 / Ryzen 7</li>
+                        <li><strong>RAM:</strong> 16 GB</li>
+                        <li><strong>GPU:</strong> RTX 3080 / RX 6800 XT</li>
+                        <li><strong>Storage:</strong> 50 GB NVMe SSD</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    }
+
+</main>
+
+@if (Model.Media != null)
+{
+    ViewData["MediaId"] = Model.Media.Id.ToString();
+    ViewData["MediaTitle"] = Model.Media.Title;
+    ViewData["ImageUrl"] = Model.Media.ImageUrl;
+    ViewData["Reviews"] = Model.Reviews;
+    ViewData["AverageRating"] = Model.AverageRating;
+    ViewData["UserRating"] = Model.UserRating;
+    ViewData["IsInWatchlist"] = Model.IsInWatchlist;
+    ViewData["IsLoggedIn"] = Model.IsLoggedIn;
+    ViewData["MediaType"] = "Game";
+
+    @await Html.PartialAsync("_ReviewSection")
+}

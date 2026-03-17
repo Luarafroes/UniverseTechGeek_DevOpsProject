@@ -1,0 +1,178 @@
+@{
+    var mediaType = ViewData["MediaType"]?.ToString() ?? "";
+    var mediaId = ViewData["MediaId"]?.ToString() ?? "";
+    var title = ViewData["MediaTitle"]?.ToString() ?? "";
+    var imageUrl = ViewData["ImageUrl"]?.ToString() ?? "";
+
+    var reviews = ViewData["Reviews"] as List<Universetechgeek.Models.Review> ?? new();
+    var avgRating = ViewData["AverageRating"] is double avg ? avg : 0.0;
+    var userRating = ViewData["UserRating"] as int?;
+    var isInWatchlist = ViewData["IsInWatchlist"] is bool w && w;
+    var isLoggedIn = ViewData["IsLoggedIn"] is bool l && l;
+}
+
+<div class="container mx-auto px-4 pb-16">
+<section class="mt-12">
+
+    <!-- Average Rating -->
+    <div class="flex items-center gap-4 mb-8">
+        <div class="text-5xl font-extrabold text-blue-600">@avgRating</div>
+        <div>
+            <div class="flex gap-1 text-2xl">
+                @for (int i = 1; i <= 5; i++)
+                {
+                    if (i <= avgRating)
+                    {
+                        <span class="text-yellow-400">★</span>
+                    }
+                    else
+                    {
+                        <span class="text-gray-300">★</span>
+                    }
+                }
+            </div>
+            <p class="text-sm text-gray-500">@reviews.Count avaliações</p>
+        </div>
+    </div>
+
+    <!-- Watchlist Button -->
+    @if (isLoggedIn)
+    {
+        <form asp-controller="Review" asp-action="AddToWatchlist" method="post" class="mb-8">
+            <input type="hidden" name="mediaId" value="@mediaId" />
+            <input type="hidden" name="mediaType" value="@mediaType" />
+            <input type="hidden" name="title" value="@title" />
+            <input type="hidden" name="imageUrl" value="@imageUrl" />
+            <button type="submit" class="@(isInWatchlist ? "bg-green-600" : "bg-black") text-white px-6 py-2 rounded-lg font-semibold hover:opacity-80 transition">
+                @(isInWatchlist ? "✓ Na Watchlist" : "+ Adicionar à Watchlist")
+            </button>
+        </form>
+    }
+
+    <!-- Review Form -->
+    @if (isLoggedIn)
+    {
+        <div class="border border-gray-200 rounded-xl p-6 mb-8">
+            <h3 class="text-xl font-bold mb-4">Escrever Review</h3>
+            <form asp-controller="Review" asp-action="Submit" method="post">
+                <input type="hidden" name="mediaId" value="@mediaId" />
+                <input type="hidden" name="mediaType" value="@mediaType" />
+
+                <!-- Star Picker -->
+                <p class="text-sm text-gray-500 mb-2">Seleciona uma avaliação:</p>
+                <div class="flex gap-2 mb-4" id="star-rating">
+                    <button type="button" onclick="setRating(1)" class="star-btn text-3xl hover:text-yellow-400 transition @(userRating >= 1 ? "text-yellow-400" : "text-gray-300")">★</button>
+                    <button type="button" onclick="setRating(2)" class="star-btn text-3xl hover:text-yellow-400 transition @(userRating >= 2 ? "text-yellow-400" : "text-gray-300")">★</button>
+                    <button type="button" onclick="setRating(3)" class="star-btn text-3xl hover:text-yellow-400 transition @(userRating >= 3 ? "text-yellow-400" : "text-gray-300")">★</button>
+                    <button type="button" onclick="setRating(4)" class="star-btn text-3xl hover:text-yellow-400 transition @(userRating >= 4 ? "text-yellow-400" : "text-gray-300")">★</button>
+                    <button type="button" onclick="setRating(5)" class="star-btn text-3xl hover:text-yellow-400 transition @(userRating >= 5 ? "text-yellow-400" : "text-gray-300")">★</button>
+                </div>
+                <input type="hidden" name="stars" id="stars-input" value="@(userRating ?? 0)" />
+
+                <textarea name="content" rows="4"
+                          placeholder="Escreve a tua review..."
+                          class="w-full border border-gray-300 rounded-lg px-4 py-2 outline-none focus:border-blue-600 mb-4"></textarea>
+
+                <button type="submit"
+                        class="bg-black text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-800 transition">
+                    Publicar Review
+                </button>
+            </form>
+        </div>
+    }
+    else
+    {
+        <div class="border border-gray-200 rounded-xl p-6 mb-8 text-center">
+            <p class="text-gray-500 mb-3">Inicia sessão para avaliar e escrever reviews</p>
+            <a href="/Account/Login"
+               class="bg-black text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-800 transition">
+                Entrar
+            </a>
+        </div>
+    }
+
+    <!-- Reviews List -->
+    <h3 class="text-xl font-bold mb-4">Reviews (@reviews.Count)</h3>
+
+    @if (!reviews.Any())
+    {
+        <p class="text-gray-500">Ainda não há reviews. Sê o primeiro!</p>
+    }
+    else
+    {
+        @foreach (var review in reviews)
+        {
+            <div class="border border-gray-200 rounded-xl p-6 mb-4">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center">
+                            @review.User?.DisplayName?[0].ToString().ToUpper()
+                        </div>
+                        <span class="font-semibold">@review.User?.DisplayName</span>
+                    </div>
+                    <div class="flex gap-1">
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            if (i <= review.Stars)
+                            {
+                                <span class="text-yellow-400">★</span>
+                            }
+                            else
+                            {
+                                <span class="text-gray-300">★</span>
+                            }
+                        }
+                    </div>
+                </div>
+                <p class="text-gray-600">@review.Content</p>
+                <p class="text-xs text-gray-400 mt-2">@review.CreatedAt.ToString("dd MMM yyyy")</p>
+            </div>
+        }
+    }
+
+</section>
+</div>
+
+<script>
+    function setRating(value) {
+        document.getElementById('stars-input').value = value;
+        const buttons = document.querySelectorAll('.star-btn');
+        buttons.forEach((btn, index) => {
+            if (index < value) {
+                btn.classList.remove('text-gray-300');
+                btn.classList.add('text-yellow-400');
+            } else {
+                btn.classList.remove('text-yellow-400');
+                btn.classList.add('text-gray-300');
+            }
+        });
+    }
+
+    // Hover preview effect
+    document.querySelectorAll('.star-btn').forEach((btn, index) => {
+        btn.addEventListener('mouseover', () => {
+            document.querySelectorAll('.star-btn').forEach((b, i) => {
+                if (i <= index) {
+                    b.classList.remove('text-gray-300');
+                    b.classList.add('text-yellow-400');
+                } else {
+                    b.classList.remove('text-yellow-400');
+                    b.classList.add('text-gray-300');
+                }
+            });
+        });
+
+        btn.addEventListener('mouseout', () => {
+            const current = parseInt(document.getElementById('stars-input').value) || 0;
+            document.querySelectorAll('.star-btn').forEach((b, i) => {
+                if (i < current) {
+                    b.classList.remove('text-gray-300');
+                    b.classList.add('text-yellow-400');
+                } else {
+                    b.classList.remove('text-yellow-400');
+                    b.classList.add('text-gray-300');
+                }
+            });
+        });
+    });
+</script>

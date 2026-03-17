@@ -1,0 +1,55 @@
+@model Universetechgeek.Models.MediaDetailsViewModel<Universetechgeek.Models.Movie>
+
+@{
+    ViewData["Title"] = "Movie Details";
+}
+
+<main class="container mx-auto py-12 px-4">
+
+    @if (Model.Media == null)
+    {
+        <p class="text-gray-500">Filme não encontrado.</p>
+    }
+    else
+    {
+        <div class="book-container">
+            <div class="book-cover shadow-2xl overflow-hidden rounded-xl">
+                <img src="@Model.Media.ImageUrl" alt="@Model.Media.Title" class="w-full h-full object-cover" />
+            </div>
+            <div class="space-y-6">
+                <div class="flex items-start justify-between flex-wrap gap-4">
+                    <div>
+                        <h1 class="text-4xl md:text-5xl font-extrabold tracking-tighter">@Model.Media.Title</h1>
+                    </div>
+                    <div class="rating-badge text-white">@Model.Media.Rating</div>
+                </div>
+                <p class="text-gray-600 text-lg leading-relaxed">@Model.Media.Description</p>
+                <div class="info-grid py-6">
+                    <div class="info-grid-item">
+                        <span class="text-gray-500">Avaliação</span>
+                        <span class="font-bold">★ @Model.Media.Rating</span>
+                    </div>
+                    <div class="info-grid-item">
+                        <a href="#" class="text-blue-600 hover:underline font-bold">Assistir Trailer</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+</main>
+
+@if (Model.Media != null)
+{
+    ViewData["MediaId"] = Model.Media.Id.ToString();
+    ViewData["MediaTitle"] = Model.Media.Title;
+    ViewData["ImageUrl"] = Model.Media.ImageUrl;
+    ViewData["Reviews"] = Model.Reviews;
+    ViewData["AverageRating"] = Model.AverageRating;
+    ViewData["UserRating"] = Model.UserRating;
+    ViewData["IsInWatchlist"] = Model.IsInWatchlist;
+    ViewData["IsLoggedIn"] = Model.IsLoggedIn;
+    ViewData["MediaType"] = "Movie";
+
+    @await Html.PartialAsync("_ReviewSection")
+}

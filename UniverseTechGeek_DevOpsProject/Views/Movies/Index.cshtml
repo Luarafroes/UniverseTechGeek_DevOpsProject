@@ -1,0 +1,84 @@
+@model List<Universetechgeek.Models.Movie>
+
+@{
+    ViewData["Title"] = "Movies";
+}
+
+<main class="container mx-auto px-4 py-12">
+    <div class="mb-8 border-l-4 border-blue-600 pl-4">
+        <h2 class="text-3xl font-bold">Filmes em Tendência</h2>
+        <p class="text-gray-500">Os filmes mais populares do momento</p>
+    </div>
+    <div class="mb-8 max-w-xl">
+        <div class="relative flex items-center">
+            <svg style="position:absolute; left:14px; color:#9ca3af;" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+            </svg>
+            <input type="text" id="search-input" placeholder="Pesquisar filmes..."
+                   style="width:100%; border:1px solid #d1d5db; border-radius:8px; padding:12px 16px 12px 44px; outline:none; font-size:14px; background:transparent;" />
+        </div>
+    </div>
+    <p id="no-results" style="display:none;" class="text-gray-500 mb-6">Nenhum resultado encontrado.</p>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6" id="main-grid">
+        @foreach (var movie in Model)
+        {
+            <a href="/Movies/Details/@movie.Id" class="group block">
+                <div class="aspect-[2/3] overflow-hidden rounded-xl shadow-sm group-hover:shadow-lg transition-shadow duration-300">
+                    <img src="@movie.ImageUrl" alt="@movie.Title" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.src='/img/no-cover.jpg'" />
+                </div>
+                <div class="mt-3 space-y-1 px-1">
+                    <h3 class="font-bold text-sm leading-tight line-clamp-2">@movie.Title</h3>
+                    @if (movie.Rating > 0) { <span class="text-xs">★ @movie.Rating</span> } else { <span class="text-xs text-gray-400">Sem avaliações</span> }
+                </div>
+            </a>
+        }
+    </div>
+    <div style="text-align:center; margin-top:40px;">
+        <button id="load-more-btn" onclick="loadMore()" class="bg-black text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-800 transition">Carregar Mais</button>
+        <div id="loading-spinner" style="display:none; margin-top:16px;"><div style="display:inline-block;width:32px;height:32px;border:4px solid #3b82f6;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></div></div>
+        <p id="end-message" style="display:none; margin-top:16px; color:#888;">Não há mais filmes</p>
+    </div>
+</main>
+<style>@@keyframes spin { to { transform: rotate(360deg); } }</style>
+<script>
+    let currentPage = 1, isLoading = false, isSearching = false;
+    const grid = document.getElementById('main-grid');
+    const loadMoreBtn = document.getElementById('load-more-btn');
+    const noResults = document.getElementById('no-results');
+    const originalCards = grid.innerHTML;
+
+    function createCard(item) {
+        const rating = item.rating > 0 ? `<span class="text-xs">★ ${item.rating}</span>` : `<span class="text-xs" style="color:#9ca3af;">Sem avaliações</span>`;
+        return `<a href="/Movies/Details/${item.id}" class="group block"><div class="aspect-[2/3] overflow-hidden rounded-xl shadow-sm group-hover:shadow-lg transition-shadow duration-300"><img src="${item.imageUrl}" alt="${item.title}" class="w-full h-full object-cover" onerror="this.src='/img/no-cover.jpg'" /></div><div class="mt-3 space-y-1 px-1"><h3 class="font-bold text-sm leading-tight line-clamp-2">${item.title}</h3>${rating}</div></a>`;
+    }
+
+    async function loadMore() {
+        if (isLoading) return; isLoading = true;
+        loadMoreBtn.style.display = 'none'; document.getElementById('loading-spinner').style.display = 'block';
+        currentPage++;
+        const res = await fetch(`/Movies/LoadMore?page=${currentPage}`);
+        const items = await res.json();
+        document.getElementById('loading-spinner').style.display = 'none';
+        if (items.length === 0) { document.getElementById('end-message').style.display = 'block'; }
+        else { items.forEach(item => grid.insertAdjacentHTML('beforeend', createCard(item))); loadMoreBtn.style.display = 'inline-block'; }
+        isLoading = false;
+    }
+
+    let searchTimeout = null;
+    document.getElementById('search-input').addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        const q = e.target.value.trim();
+        if (q.length === 0) { grid.innerHTML = originalCards; noResults.style.display = 'none'; loadMoreBtn.style.display = 'inline-block'; return; }
+        if (q.length < 2) return;
+        loadMoreBtn.style.display = 'none';
+        searchTimeout = setTimeout(async () => {
+            if (isSearching) return; isSearching = true;
+            grid.innerHTML = `<div class="col-span-full flex justify-center py-12"><div style="width:32px;height:32px;border:4px solid #3b82f6;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></div></div>`;
+            const res = await fetch(`/Movies/Search?q=${encodeURIComponent(q)}`);
+            const items = await res.json();
+            if (items.length === 0) { grid.innerHTML = ''; noResults.style.display = 'block'; }
+            else { noResults.style.display = 'none'; grid.innerHTML = items.map(item => createCard(item)).join(''); }
+            isSearching = false;
+        }, 400);
+    });
+</script>

@@ -1,0 +1,217 @@
+@inject Microsoft.AspNetCore.Identity.UserManager<Universetechgeek.Models.AppUser> UserManager
+@inject Microsoft.AspNetCore.Identity.SignInManager<Universetechgeek.Models.AppUser> SignInManager
+
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Universe TechGeek</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+    <!-- Your CSS files -->
+    <link rel="stylesheet" href="~/css/games.css" />
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: #fff;
+            color: #111;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .navbar-link {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #aaa;
+            text-decoration: none;
+            transition: color 0.2s;
+            padding: 4px 0;
+        }
+
+        .navbar-link:hover { color: #fff; }
+
+        .rating-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 52px;
+            height: 52px;
+            padding: 0 10px;
+            border-radius: 8px;
+            background: #ef4444;
+            font-size: 22px;
+            font-weight: 900;
+            color: #fff;
+        }
+
+        .book-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 48px;
+            align-items: start;
+            margin-bottom: 48px;
+        }
+
+        .book-cover {
+            width: 280px;
+            height: 420px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            border-top: 1px solid #e5e7eb;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .info-grid-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 12px 0;
+        }
+
+        .requirement-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .news-badge {
+            display: inline-block;
+            background: #ef4444;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+
+        .hover-card {
+            transition: transform 0.2s ease;
+        }
+
+        .hover-card:hover {
+            transform: translateY(-2px);
+        }
+
+        @@media (max-width: 768px) {
+            .book-container {
+                grid-template-columns: 1fr;
+            }
+            .book-cover {
+                width: 100%;
+                height: 360px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav style="background:#000; border-bottom:1px solid #1a1a1a; position:sticky; top:0; z-index:50;">
+        <div class="container mx-auto px-4">
+            <div style="display:flex; align-items:center; justify-content:space-between; height:56px;">
+
+                <!-- Logo -->
+                <a href="/" style="font-size:18px; font-weight:900; letter-spacing:-0.02em; color:#fff;">
+                    UNIVERSE <span style="color:#ef4444;">TECHGEEK</span>
+                </a>
+
+                <!-- Nav Links -->
+                <div style="display:flex; align-items:center; gap:28px;">
+                    <a href="/Books" class="navbar-link">Books</a>
+                    <a href="/Games" class="navbar-link">Games</a>
+                    <a href="/Movies" class="navbar-link">Movies</a>
+                    <a href="/Animes" class="navbar-link">Animes</a>
+                    <a href="/TvShows" class="navbar-link">TV Shows</a>
+                </div>
+
+                <!-- Auth -->
+                <div style="display:flex; align-items:center; gap:16px;">
+                    @if (SignInManager.IsSignedIn(User))
+                    {
+                        var currentUser = await UserManager.GetUserAsync(User);
+                        <a href="/Account/Profile"
+                           style="display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,#3b82f6,#6366f1); color:#fff; font-size:13px; font-weight:800;">
+                            @currentUser?.DisplayName?[0].ToString().ToUpper()
+                        </a>
+                        <form asp-controller="Account" asp-action="Logout" method="post" style="margin:0;">
+                            <button type="submit"
+                                    style="background:transparent; border:1px solid #333; color:#aaa; font-size:12px; font-weight:600; padding:6px 14px; border-radius:6px; cursor:pointer;"
+                                    onmouseover="this.style.borderColor='#666';this.style.color='#fff'"
+                                    onmouseout="this.style.borderColor='#333';this.style.color='#aaa'">
+                                Sair
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <a href="/Account/Login"
+                           style="color:#aaa; font-size:13px; font-weight:600; letter-spacing:0.05em;"
+                           onmouseover="this.style.color='#fff'"
+                           onmouseout="this.style.color='#aaa'">
+                            Entrar
+                        </a>
+                        <a href="/Account/Register"
+                           style="background:#ef4444; color:#fff; font-size:12px; font-weight:700; padding:7px 16px; border-radius:6px; letter-spacing:0.05em;"
+                           onmouseover="this.style.background='#dc2626'"
+                           onmouseout="this.style.background='#ef4444'">
+                            Registar
+                        </a>
+                    }
+                </div>
+
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Content -->
+    @RenderBody()
+
+    <!-- Footer -->
+    <footer style="background:#000; border-top:1px solid #1a1a1a; padding:32px 0; margin-top:64px;">
+        <div class="container mx-auto px-4">
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
+                <span style="font-size:16px; font-weight:900; color:#fff; letter-spacing:-0.02em;">
+                    UNIVERSE <span style="color:#ef4444;">TECHGEEK</span>
+                </span>
+                <div style="display:flex; gap:24px;">
+                    <a href="/Books" style="color:#555; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em;">Books</a>
+                    <a href="/Games" style="color:#555; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em;">Games</a>
+                    <a href="/Movies" style="color:#555; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em;">Movies</a>
+                    <a href="/Animes" style="color:#555; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em;">Animes</a>
+                    <a href="/TvShows" style="color:#555; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em;">TV Shows</a>
+                </div>
+                <span style="color:#555; font-size:12px;">&copy; 2026 Universe TechGeek</span>
+            </div>
+        </div>
+    </footer>
+
+    @await RenderSectionAsync("Scripts", required: false)
+
+</body>
+</html>
