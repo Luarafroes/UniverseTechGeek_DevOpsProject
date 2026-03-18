@@ -5,29 +5,96 @@
 }
 
 <!-- Hero Section -->
-<section style="padding:48px 0; background:#f9fafb; border-bottom:1px solid #e5e7eb;">
+<section style="padding:48px 0; background:#0a0a0a; border-bottom:1px solid #1a1a1a;">
     <div class="container mx-auto px-4">
         <div class="grid md:grid-cols-2 gap-8 items-center">
             <div>
-                <h1 class="text-5xl font-extrabold mb-4 tracking-tight">Descubra a tua próxima paixão.</h1>
-                <p class="text-xl text-gray-600 mb-8">O melhor guia para entretenimento. Críticas, lançamentos e tendências num só lugar.</p>
+                <h1 class="text-5xl font-extrabold mb-4 tracking-tight" style="color:#fff;">Descubra a tua próxima paixão.</h1>
+                <p class="text-xl mb-8" style="color:#aaa;">O melhor guia para entretenimento. Críticas, lançamentos e tendências num só lugar.</p>
                 <div style="display:flex; gap:12px; flex-wrap:wrap;">
-                    <a href="/Games" style="background:#111; color:#fff; padding:12px 24px; border-radius:8px; font-weight:700; font-size:14px;">Ver Jogos</a>
-                    <a href="/Movies" style="background:transparent; color:#111; padding:12px 24px; border-radius:8px; font-weight:700; font-size:14px; border:2px solid #111;">Ver Filmes</a>
+                    <a href="/Games" style="background:#ef4444; color:#fff; padding:12px 24px; border-radius:8px; font-weight:700; font-size:14px;">Ver Jogos</a>
+                    <a href="/Movies" style="background:transparent; color:#fff; padding:12px 24px; border-radius:8px; font-weight:700; font-size:14px; border:2px solid #444;">Ver Filmes</a>
+                </div>
+
+                <!-- Dots indicator -->
+                <div style="display:flex; gap:8px; margin-top:32px;" id="hero-dots">
+                    @{
+                        var heroItems = new List<(string Title, string ImageUrl, string Url, string Type, double Rating)>();
+                        foreach (var g in Model.Games.Take(2))
+                            heroItems.Add((g.Title, g.ImageUrl, $"/Games/Details/{g.Id}", "Jogo", g.Rating));
+                        foreach (var m in Model.Movies.Take(2))
+                            heroItems.Add((m.Title, m.ImageUrl, $"/Movies/Details/{m.Id}", "Filme", m.Rating));
+                        foreach (var s in Model.TvShows.Take(2))
+                            heroItems.Add((s.Title, s.ImageUrl, $"/TvShows/Details/{s.Id}", "Série", s.Rating));
+                        foreach (var a in Model.Animes.Take(2))
+                            heroItems.Add((a.Title, a.ImageUrl, $"/Animes/Details/{a.Id}", "Anime", a.Rating));
+                        foreach (var b in Model.Books.Take(1))
+                            heroItems.Add((b.Title, b.ImageUrl, $"/Books/Details/{b.Id}", "Livro", b.Rating));
+                    }
+                    @for (int i = 0; i < heroItems.Count; i++)
+                    {
+                        <button onclick="goToSlide(@i)"
+                                style="width:@(i == 0 ? "24px" : "8px"); height:8px; border-radius:@(i == 0 ? "4px" : "50%"); border:none; cursor:pointer; transition:all 0.3s; background:@(i == 0 ? "#ef4444" : "#444");"
+                                class="hero-dot">
+                        </button>
+                    }
                 </div>
             </div>
-            @if (Model.Games.Any())
-            {
-                var hero = Model.Games.First();
-                <a href="/Games/Details/@hero.Id" class="hover-card" style="display:block; border-radius:16px; overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,0.12);">
-                    <img src="@hero.ImageUrl" alt="@hero.Title" style="width:100%; height:320px; object-fit:cover; display:block;" onerror="this.src='/img/no-cover.jpg'" />
-                </a>
-            }
+
+            <!-- Slideshow -->
+            <div style="position:relative; border-radius:16px; overflow:hidden; height:320px;">
+                @for (int i = 0; i < heroItems.Count; i++)
+                {
+                    var item = heroItems[i];
+                    <a href="@item.Url"
+                       style="position:absolute; inset:0; opacity:@(i == 0 ? "1" : "0"); transition:opacity 0.8s ease; display:block;"
+                       class="hero-slide">
+                        <img src="@item.ImageUrl" alt="@item.Title"
+                             style="width:100%; height:100%; object-fit:cover; display:block;"
+                             onerror="this.src='/img/no-cover.jpg'" />
+                        <div style="position:absolute; bottom:0; left:0; right:0; padding:20px; background:linear-gradient(to top, rgba(0,0,0,0.85), transparent);">
+                            <span style="background:#ef4444; color:#fff; font-size:10px; font-weight:700; padding:2px 8px; border-radius:3px; text-transform:uppercase; letter-spacing:0.1em;">@item.Type</span>
+                            <p style="color:#fff; font-weight:700; font-size:16px; margin:6px 0 0;">@item.Title</p>
+                            @if (item.Rating > 0)
+                            {
+                                <p style="color:#facc15; font-size:13px; margin:4px 0 0;">★ @item.Rating</p>
+                            }
+                        </div>
+                    </a>
+                }
+            </div>
         </div>
     </div>
 </section>
 
-<main class="container mx-auto px-4 py-12" style="display:flex; flex-direction:column; gap:80px;">
+<script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.hero-slide');
+    const dots = document.querySelectorAll('.hero-dot');
+    const totalSlides = slides.length;
+
+    function goToSlide(index) {
+        slides[currentSlide].style.opacity = '0';
+        dots[currentSlide].style.background = '#444';
+        dots[currentSlide].style.width = '8px';
+        dots[currentSlide].style.borderRadius = '50%';
+
+        currentSlide = index;
+
+        slides[currentSlide].style.opacity = '1';
+        dots[currentSlide].style.background = '#ef4444';
+        dots[currentSlide].style.width = '24px';
+        dots[currentSlide].style.borderRadius = '4px';
+    }
+
+    function nextSlide() {
+        goToSlide((currentSlide + 1) % totalSlides);
+    }
+
+    setInterval(nextSlide, 4000);
+</script>
+
+<main class="container mx-auto px-4 py-12" style="display:flex; flex-direction:column; gap:80px; background:#0a0a0a;">
 
     <!-- Books Section -->
     <section id="books">
