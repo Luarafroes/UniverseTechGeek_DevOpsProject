@@ -8,7 +8,7 @@
 
     @if (Model.Media == null)
     {
-        <p class="text-gray-500">Anime não encontrado.</p>
+        <p class="text-gray-500">Filme não encontrado.</p>
     }
     else
     {
@@ -48,7 +48,7 @@
     ViewData["UserRating"] = Model.UserRating;
     ViewData["IsInWatchlist"] = Model.IsInWatchlist;
     ViewData["IsLoggedIn"] = Model.IsLoggedIn;
-    ViewData["MediaType"] = "Anime";
+    ViewData["MediaType"] = "Movie";
 
     @await Html.PartialAsync("_ReviewSection")
 }
